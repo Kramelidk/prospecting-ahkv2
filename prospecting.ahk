@@ -1,10 +1,12 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 WinActivate "Roblox"
 
 SetKeyDelay 50, 50
 CoordMode "Pixel", "Window"
 CoordMode "Mouse", "Window"
+
+global CUSTOMPERFECTWAITTIME := 272
 
 global sleepTime := 1
 global mineError := false
@@ -22,20 +24,20 @@ positionRobloxWindow() {
 }
 positionRobloxWindow()
 
-MoveMouseToCenter(winTitle) {
-    WinGetPos(&x, &y, &w, &h, winTitle)
-    centerX := x + w // 2
-    centerY := y + h // 2
-    MouseMove centerX, centerY
-}
-MoveMouseToCenter("Roblox")
+WinGetPos(&x, &y, &w, &h, "Roblox")
+centerX := x + w // 2
+centerY := y + h // 2 
+MouseMove centerX, centerY
 
 loop 20
     Send("{WheelUp}")
-
+    Sleep 5
 Sleep 200
 
 Send("{WheelDown}")
+Sleep 250
+MouseGetPos &x, &y
+MouseMove x, y + 172
 
 saveConfigToFile(filePath := "pixel_config.txt") {
     global PixelConfig
@@ -51,7 +53,7 @@ saveConfigToFile(filePath := "pixel_config.txt") {
 loadConfigFromFile(filePath := "pixel_config.txt") {
     global PixelConfig, buttons
     if !FileExist(filePath) {
-        MsgBox "Config file not found!"
+        txtStatus.Value := "i couldnt find a pixel_config.txt file, make it and dont forget to save it :)"
         return
     }
 
@@ -66,7 +68,6 @@ loadConfigFromFile(filePath := "pixel_config.txt") {
             buttons[key].Text := key " (" coords[1] ", " coords[2] ")"
     }
 }
-
 
 ; Global pixel positions
 global PixelConfig := Map(
@@ -97,16 +98,32 @@ openConfigMenu() {
     buttons["barEnd"] := myGui.Add("Button", "w200", "Set 'Fill Pan' Bottom Right Corner'")
     buttons["barEnd"].OnEvent("Click", (*) => capturePixel("barEnd", buttons["barEnd"]))
 
+    buttons["savePainite"] := myGui.Add("CheckBox", "vSavePainite", "Save Painite?")
+    buttons["saveInferlume"] := myGui.Add("CheckBox", "vSaveInferlume", "Save Inferlume?")
+    buttons["saveVortessence"] := myGui.Add("CheckBox", "vSaveVortessence", "Save Vortessence?")
+    buttons["savePrismara"] := myGui.Add("CheckBox", "vSavePrismara", "Save Prismara?")
+    buttons["saveFlarebloom"] := myGui.Add("CheckBox", "vSaveFlarebloom", "Save Flarebloom?")
+    buttons["saveVolcanicCore"] := myGui.Add("CheckBox", "vSaveVolcanicCore", "Save Volcanic Core?")
+    buttons["saveDinosaurSkull"] := myGui.Add("CheckBox", "vSaveDinosaurSkull", "Save Dinosaur Skull?")
+
+    buttons["saveCustomText"] := myGui.Add("Text", "vSaveCustom", "Save custom minerals:")
+    buttons["saveCustom1"] := myGui.Add("Edit", "vSaveCustom1")
+    buttons["saveCustom2"] := myGui.Add("Edit", "vSaveCustom2")
+    buttons["saveCustom3"] := myGui.Add("Edit", "vSaveCustom3")
+
     myGui.Add("Button", "w200", "Save Config").OnEvent("Click", (*) => saveConfigToFile())
     myGui.Add("Button", "w200", "Load Config").OnEvent("Click", (*) => (
         loadConfigFromFile()
     ))
 
+    loadConfigFromFile()
+
 
     ; Print config
     myGui.Add("Button", "w200", "Print Config").OnEvent("Click", printConfig)
 
-    global txtStatus := myGui.Add("Text", "w200", "Status: Waiting...")
+    global txtStatus := myGui.Add("Text", "w200", "im waiting")
+    txtStatus.Value := "i loaded the config for u <3"
 
     myGui.Show()
     WinMove(100 + A_ScreenWidth - (A_ScreenWidth / 3), 200,,, "ahk_id " myGui.Hwnd)
@@ -116,12 +133,12 @@ openConfigMenu() {
         global PixelConfig
         WinActivate "Roblox"
         ToolTip("select pixel...")
-        KeyWait("LButton", "D")
+        KeyWait("LButton", "d")
         if (name = "mineCheck")
         {
             MsgBox 'press again'
             Sleep 100
-            KeyWait("LButton", "D")
+            KeyWait("LButton", "d")
         }
         CoordMode "Mouse", "Window"
         MouseGetPos &x, &y
@@ -172,13 +189,15 @@ sampleArea(x1, y1, x2, y2, step) {
 
 F6:: {
     global isRunning
+    global mineCount := 0
     isRunning := !isRunning
     if isRunning {
-        txtStatus.Value := "Status: StartingS"
+        txtStatus.Value := "im starting"
         SetTimer mainLoop, 100
     } else {
-        txtStatus.Value := "Status: Paused"
+        txtStatus.Value := "im paused"
         releaseAllKeys()
+        MsgBox "i paused, to resume click ok lil bro"
         KeyWait "F6"
     }
 }
@@ -188,55 +207,78 @@ mainLoop() {
     color := getPixelColor(PixelConfig["barEnd"][1], PixelConfig["barEnd"][2])
     if (color = 0x8C8C8C)
     {
-        txtStatus.Value := "Status: The bar is NOT full - going to mine"
+        txtStatus.Value := "the bar is not full, im gonna mine"
         if !canMine()
             {
-                txtStatus.Value := "Status: (Error) Cannot Mine? going forward"
-                holdKey("W")
+                txtStatus.Value := "i cant mine, im gonna go forward"
+                holdKey("w")
                 Sleep 500
-                releaseKey("W")
+                releaseKey("w")
                 return
             }
             ; Mine block
             Sleep 800
             Loop {
-                txtStatus.Value := "Status: Mining!"
+                txtStatus.Value := "im mining"
                 color := getPixelColor(PixelConfig["barEnd"][1], PixelConfig["barEnd"][2])
                 if color = 0x8C8C8C {
                     mineOneTime()
-                    Sleep 800
+                    ;Sleep 800
                 } else {
-                    txtStatus.Value := "Status: Mining Finished"
+                    txtStatus.Value := "i finished mining"
                     break
                 }
                 if (mineError)
                 {
                     global mineError := false
-                    txtStatus.Value := "Status: (Error) some mining error wtf"
+                    txtStatus.Value := "there was some mining error lil bro"
                     break
                 }
             }
     }
     else
     {
-        txtStatus.Value := "Status: The bar is full - going to pan"
-        holdKey("S")
-        waitForAlmostWhite(PixelConfig["canPan"][1], PixelConfig["canPan"][2])
-        releaseKey("S")
-        txtStatus.Value := "Status: Can Pan Here"
+        txtStatus.Value := "im gonna pan, the bar is full"
+        holdKey("s")
+        startTime := A_TickCount
+        loop 
+        {
+            color := getPixelColor(PixelConfig["canPan"][1], PixelConfig["canPan"][2])
+            if isAlmostWhite(color)
+            {
+                break
+            }
+            if (A_TickCount - startTime >= 3000)
+            {
+                txtStatus.Value := "i think im bugging, ill try again"
+                break
+            }
+            Sleep 50
+        }
+        releaseKey("s")
+        txtStatus.Value := "i can pan here :)"
 
         if canPan() {
-            txtStatus.Value := "Status: Starting to Pan"
+            mineCount := 0
+            txtStatus.Value := "im starting to pan"
             Sleep 100
             clickOnce()
             Sleep 400
-            txtStatus.Value := "Status: Panning!"
+            txtStatus.Value := "im panning lil bro"
+            panStartTime := A_TickCount
             loop
             {
+
+                if (A_TickCount - panStartTime >= 5000)
+                {
+                    txtStatus.Value := "this is taking too long what"
+                    break
+                }
+
                 color := getPixelColor(PixelConfig["barStart"][1], PixelConfig["barStart"][2])
                 if (color = 0x8C8C8C)
                 {
-                    txtStatus.Value := "Status: Finished"
+                    txtStatus.Value := "i finished panning"
                     break
                 }
                 else
@@ -248,13 +290,12 @@ mainLoop() {
             loop 5
                 clickOnce()
                 Sleep 10
-            txtStatus.Value := "Status: Panning Finished"
-            txtStatus.Value := "Status: Going to Mine"
-            holdKey("W")
+            txtStatus.Value := "now im walking to mine"
+            holdKey("w")
             Loop {
                 if isAlmostWhite(getPixelColor(PixelConfig["canMine"][1], PixelConfig["canMine"][2])) {
-                    releaseKey("W")
-                    txtStatus.Value := "Status: Starting to Mine"
+                    releaseKey("w")
+                    txtStatus.Value := "im starting to mine"
                     break
                 }
                 Sleep 20
@@ -271,6 +312,13 @@ isAlmostWhite(color) {
     g := (color >> 8) & 0xFF
     b := color & 0xFF
     return (r >= 250 && g >= 250 && b >= 250)
+}
+
+isAlmostRed(color) {
+    r := (color >> 16) & 0xFF
+    g := (color >> 8) & 0xFF
+    b := color & 0xFF
+    return(r > g + 50 && r > b + 50)
 }
 
 getPixelColor(x, y) {
@@ -321,85 +369,248 @@ waitForAlmostWhite(x, y, delay := 50) {
     }
 }
 
+typeBypasser(text) {
+    for char in StrSplit(text) {
+        SendText(char)  ; This sends literal text, not hotkey syntax
+        Sleep Round(Random(2, 15))
+    }
+}
+
+moveMouseToSearchBox() {
+    Sleep 1000
+    MouseMove 808, 605, 10
+    Sleep 50
+    MouseMove 812, 605, 10
+    Sleep 500
+    WinActivate "Roblox"
+    loop 3 {
+        clickOnce()
+        Sleep 20
+    }
+    Sleep 500
+}
+
+checkLockedMinerals() {
+    slotCoordsX := 327
+    slotCoordsY := 680
+
+    howManyMinerals := 0
+
+    loop
+    {
+        color := getPixelColor(slotCoordsX, slotCoordsY)
+        if (color = 0x191B1D)
+        {
+            txtStatus.Value := "im checking if they are locked"
+            if PixelSearch(&Px, &Py, slotCoordsX, slotCoordsY - 60, slotCoordsX + 50, slotCoordsY - 50, 0xFFCC00, 3)
+            {
+            }
+            else
+            {
+                MouseMove slotCoordsX, slotCoordsY, 10
+                Sleep 50
+                MouseClick "right", , , , , "D"
+                Sleep 50
+                MouseClick "right", , , , , "U"
+                Sleep 100
+            }
+
+            howManyMinerals := howManyMinerals + 1
+            slotCoordsX := slotCoordsX + 66
+        } else
+        {
+            txtStatus.Value := "i found " howManyMinerals " minerals"
+            break
+        }
+        Sleep 50
+    }
+}
+
 mineOneTime() {
     global isRunning
     clickDown()
-    perfectStartTime := A_TickCount
+    isMining := false
 
-    startSample := sampleArea(
-        PixelConfig["barStart"][1], PixelConfig["barStart"][2],
-        PixelConfig["barEnd"][1], PixelConfig["barEnd"][2], 20
-    )
+    global mineCount := mineCount + 1
+    errorColor := getPixelColor(640, 673)
+    MouseMove 640, 673
 
-    if foundPerfect
+    if CUSTOMPERFECTWAITTIME
     {
-        Sleep perfectTime
+        Sleep (290 * (232 / CUSTOMPERFECTWAITTIME))
         clickUp()
+        if isAlmostRed(errorColor){
+            txtStatus.Value := "ok im gonna sell"
+
+            SendInput "g"
+            xCoords := 900
+            loop 5
+            {
+                fullColor := getPixelColor(xCoords, 560)
+                if isAlmostRed(fullColor)
+                {
+                    return
+                }
+                xCoords := xCoords + 11
+            }
+
+            if buttons["savePainite"].Value
+            {
+
+                moveMouseToSearchBox()
+                search := "paini"
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["saveInferlume"].Value
+            {
+
+                moveMouseToSearchBox()
+                search := "inferl"
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["saveVortessence"].Value
+            {
+
+                moveMouseToSearchBox()
+                search := "vortess"
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["savePrismara"].Value
+            {
+
+                moveMouseToSearchBox()
+                search := "prisma"
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["saveFlarebloom"].Value
+            {
+
+                moveMouseToSearchBox()
+                search := "flarebl"
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["saveVolcanicCore"].Value
+            {
+
+                moveMouseToSearchBox()
+                search := "core"
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["saveDinosaurSkull"].Value
+            {
+
+                moveMouseToSearchBox()
+                search := "skull"
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["saveCustom1"].Value
+            {
+                moveMouseToSearchBox()
+                search := buttons["saveCustom1"].Value
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["saveCustom2"].Value
+            {
+                moveMouseToSearchBox()
+                search := buttons["saveCustom2"].Value
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            if buttons["saveCustom3"].Value
+            {
+                moveMouseToSearchBox()
+                search := buttons["saveCustom3"].Value
+
+                typeBypasser(search)
+
+                Sleep 800
+                Send "{Enter}"
+                Sleep 200
+
+                checkLockedMinerals()
+            }
+
+            MouseMove 500, 565, 50
+            MouseMove 505, 565, 10
+            clickOnce()
+            Sleep 3000
+            SendInput "g"
+            Sleep 100
+        }
         return
     }
 
-    startTime := A_TickCount
-    Loop {
-        color1 := getPixelColor(PixelConfig["mineCheck"][1], PixelConfig["mineCheck"][2])
-        color2 := getPixelColor(PixelConfig["mineCheck"][1], PixelConfig["mineCheck"][2]+2)
-        color3 := getPixelColor(PixelConfig["mineCheck"][1], PixelConfig["mineCheck"][2]-2)
-        color4 := getPixelColor(PixelConfig["mineCheck"][1], PixelConfig["mineCheck"][2]+4)
-        color := getPixelColor(PixelConfig["barEnd"][1], PixelConfig["barEnd"][2])
-
-        if isAlmostWhite(color1) || isAlmostWhite(color2) || isAlmostWhite(color3) || isAlmostWhite(color4) || color != 0x8C8C8C {
-            clickUp()
-            Sleep 500
-            WinGetPos(&x, &y, &w, &h, "Roblox")
-            xLocation := x + w // 2
-            yLocation := h // 2 - 40
-            offset := 5
-            global endTime := A_TickCount
-            loop 10
-            {
-                perfectColor := getPixelColor(xLocation, yLocation - 25 + offset)
-                if (perfectColor = 0xFFD83C)
-                {
-                    global foundPerfect := true
-                    global perfectTime := endTime - perfectStartTime
-                    txtStatus.Value := "Status: Perfect detected :3"
-                    break
-                }
-                offset := offset + 5
-                Sleep 5
-            }
-            break
-        }
-
-        if getPixelColor(PixelConfig["inventoryCheck"][1], PixelConfig["inventoryCheck"][2]) = 0xFE0000 {
-            global isRunning := false
-            releaseAllKeys()
-            MsgBox "full inventory prolly"
-            break
-        }
-
-        if (A_TickCount - startTime >= 3000)
-        {
-            startTime := A_TickCount
-
-            endSample := sampleArea(
-                PixelConfig["barStart"][1], PixelConfig["barStart"][2],
-                PixelConfig["barEnd"][1], PixelConfig["barEnd"][2], 20
-            )
-
-            if !areaChanged(startSample, endSample) {
-                txtStatus.Value := "Status: (Error) Area did NOT change wtf"
-                global mineError := true
-                break
-            }
-
-            startSample := sampleArea(
-                PixelConfig["barStart"][1], PixelConfig["barStart"][2],
-                PixelConfig["barEnd"][1], PixelConfig["barEnd"][2], 20
-            )
-        }
-
-        Sleep sleepTime
-    }
 }
 
 areaChanged(before, after) {
