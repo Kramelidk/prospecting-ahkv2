@@ -6,7 +6,7 @@ SetKeyDelay 50, 50
 CoordMode "Pixel", "Window"
 CoordMode "Mouse", "Window"
 
-global CUSTOMPERFECTWAITTIME := 272
+global CUSTOMPERFECTWAITTIME := 205
 
 global sleepTime := 1
 global mineError := false
@@ -29,10 +29,10 @@ centerX := x + w // 2
 centerY := y + h // 2 
 MouseMove centerX, centerY
 
-loop 20
+loop 10
     Send("{WheelUp}")
-    Sleep 5
-Sleep 200
+    Sleep 20
+Sleep 400
 
 Send("{WheelDown}")
 Sleep 250
@@ -271,7 +271,10 @@ mainLoop() {
 
                 if (A_TickCount - panStartTime >= 5000)
                 {
-                    txtStatus.Value := "this is taking too long what"
+                    txtStatus.Value := "im probly retarded"
+                    holdKey("s")
+                    Sleep 300
+                    releaseKey("s")
                     break
                 }
 
@@ -318,7 +321,7 @@ isAlmostRed(color) {
     r := (color >> 16) & 0xFF
     g := (color >> 8) & 0xFF
     b := color & 0xFF
-    return(r > g + 50 && r > b + 50)
+    return(r > g + 60 && r > b + 60)
 }
 
 getPixelColor(x, y) {
@@ -432,8 +435,8 @@ mineOneTime() {
     isMining := false
 
     global mineCount := mineCount + 1
-    errorColor := getPixelColor(640, 673)
-    MouseMove 640, 673
+    errorColor := getPixelColor(655, 673)
+    MouseMove 655, 673
 
     if CUSTOMPERFECTWAITTIME
     {
@@ -449,7 +452,7 @@ mineOneTime() {
                 fullColor := getPixelColor(xCoords, 560)
                 if isAlmostRed(fullColor)
                 {
-                    return
+                    break
                 }
                 xCoords := xCoords + 11
             }
